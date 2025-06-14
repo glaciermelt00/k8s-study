@@ -77,8 +77,34 @@ kubectl logs postgres-0
 kubectl exec -it postgres-0 -- psql -U postgres -d postgresdb
 
 # ポートフォワード経由で接続
-kubectl port-forward postgres-0 5432:5432 &
+kubectl port-forward postgres-0 15432:5432 &
 psql -h localhost -U postgres -d postgresdb
+```
+
+### TablePlus からの接続
+
+1. ポートフォワードを開始：
+
+   ```bash
+   # ローカルの 15432 ポートを Pod の 5432 ポートに転送
+   kubectl port-forward postgres-0 15432:5432
+   ```
+
+2. TablePlus で新しい接続を作成：
+
+   - **Host**: `localhost` または `127.0.0.1`
+   - **Port**: `15432`
+   - **User**: `postgres`（.envrc で設定した値）
+   - **Password**: `postgres123`（.envrc で設定した値）
+   - **Database**: `postgresdb`（.envrc で設定した値）
+
+3. 「Test」ボタンで接続テスト後、「Connect」で接続
+
+### コマンドラインからの接続確認
+
+```bash
+# ポートフォワード経由で接続
+psql -h localhost -p 15432 -U postgres -d postgresdb
 ```
 
 ## 5. 永続性の確認
