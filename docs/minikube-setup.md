@@ -107,6 +107,45 @@ psql -h localhost -U postgres -d postgresdb
 psql -h localhost -p 15432 -U postgres -d postgresdb
 ```
 
+### Headless Service 経由でのアクセス
+
+StatefulSet の Pod は Headless Service を通じて DNS 名でアクセスできます。
+
+#### DNS 名の形式
+
+```
+<pod-name>.<service-name>.<namespace>.svc.cluster.local
+```
+
+PostgreSQL の場合：
+- `postgres-0.postgres-headless.default.svc.cluster.local`
+
+#### テスト用クライアント Pod の作成
+
+```bash
+# クライアント Pod を作成
+kubectl apply -f postgres/test-pod.yaml
+
+# クライアント Pod から Headless Service 経由で接続
+kubectl exec -it postgres-client -- psql -h postgres-0.postgres-headless.default.svc.cluster.local -U postgres -d postgresdb
+
+# または短縮形で接続
+kubectl exec -it postgres-client -- psql -h postgres-0.postgres-headless -U postgres -d postgresdb
+
+# Service 名だけでも接続可能（ラウンドロビンではなく、StatefulSet の場合は postgres-0 に接続）
+kubectl exec -it postgres-client -- psql -h postgres-headless -U postgres -d postgresdb
+
+# DNS 解決の確認
+kubectl exec -it postgres-client -- nslookup postgres-headless
+kubectl exec -it postgres-client -- nslookup postgres-0.postgres-headless
+```
+
+#### クリーンアップ
+
+```bash
+kubectl delete pod postgres-client
+```
+
 ## 5. 永続性の確認
 
 ```bash
