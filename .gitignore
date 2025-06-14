@@ -26,6 +26,14 @@ go.work.sum
 
 # env file
 .env
+.envrc
+
+# Kubernetes secrets
+secret.yaml
+postgres/secret.yaml
+
+# Claude settings
+.claude/settings.local.json
 
 # Editor/IDE
 # .idea/
