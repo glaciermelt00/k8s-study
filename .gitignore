@@ -30,7 +30,7 @@ go.work.sum
 
 # Kubernetes secrets
 secret.yaml
-postgres/secret.yaml
+deployments/postgres/secret.yaml
 
 # Claude settings
 .claude/settings.local.json

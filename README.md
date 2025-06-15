@@ -48,22 +48,43 @@ Kubernetes 学習用リポジトリ
 
 ## 現在の実装状況
 
+### ディレクトリ構成
+
+```
+k8s-study/
+├── apps/                # アプリケーションコード
+│   ├── api/             # API サーバー（実装予定）
+│   └── migration/       # DB マイグレーション（実装予定）
+├── deployments/         # Kubernetes マニフェスト
+│   ├── postgres/        # PostgreSQL
+│   ├── api/             # API サーバー
+│   └── migration/       # マイグレーション Job
+├── scripts/             # ユーティリティスクリプト
+├── docs/                # ドキュメント
+└── Makefile             # タスクランナー
+```
+
 ### PostgreSQL StatefulSet
 
 本番環境での External Secrets Operator の使用を見据えた、ローカル開発環境での PostgreSQL 構築。
 
-#### ディレクトリ構成
+#### クイックスタート
 
-```
-postgres/
-├── configmap.yaml      # PostgreSQL設定ファイル
-├── service.yaml        # Headless Service（StatefulSet用）
-├── statefulset.yaml    # PostgreSQL StatefulSet定義
-├── create-secret.sh    # Secret生成スクリプト
-└── secret.yaml         # 生成されるSecretマニフェスト（.gitignore対象）
+```bash
+# 初期セットアップ（.envrc のコピーと Secret 生成）
+make setup
+
+# PostgreSQL のデプロイ
+make deploy-postgres
+
+# ポートフォワード（別ターミナルで実行）
+make port-forward
+
+# ログ確認
+make logs
 ```
 
-#### セットアップ手順
+#### 手動セットアップ
 
 1. **環境変数の設定**
 
@@ -80,14 +101,14 @@ postgres/
 
    ```bash
    # 環境変数からSecretマニフェストを生成
-   ./postgres/create-secret.sh
+   ./scripts/create-secret.sh
    ```
 
 3. **リソースのデプロイ**
 
    ```bash
    # すべてのリソースを適用
-   kubectl apply -f postgres/
+   kubectl apply -f deployments/postgres/
 
    # 確認
    kubectl get statefulset,svc,secret,pvc

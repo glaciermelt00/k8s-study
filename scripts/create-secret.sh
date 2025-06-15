@@ -20,14 +20,15 @@ if [ -z "$POSTGRES_USER" ] || [ -z "$POSTGRES_PASSWORD" ] || [ -z "$POSTGRES_DB"
 fi
 
 # Secret YAMLマニフェストを生成
+OUTPUT_FILE="$PROJECT_ROOT/deployments/postgres/secret.yaml"
 kubectl create secret generic postgres-secret \
     --namespace=default \
     --from-literal=POSTGRES_USER="$POSTGRES_USER" \
     --from-literal=POSTGRES_PASSWORD="$POSTGRES_PASSWORD" \
     --from-literal=POSTGRES_DB="$POSTGRES_DB" \
-    --dry-run=client -o yaml > "$SCRIPT_DIR/secret.yaml"
+    --dry-run=client -o yaml > "$OUTPUT_FILE"
 
-echo "Secret manifest created: $SCRIPT_DIR/secret.yaml"
+echo "Secret manifest created: $OUTPUT_FILE"
 echo ""
 echo "To apply the secret:"
-echo "  kubectl apply -f $SCRIPT_DIR/secret.yaml"
+echo "  kubectl apply -f $OUTPUT_FILE"
