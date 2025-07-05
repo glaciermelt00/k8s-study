@@ -12,9 +12,6 @@ on:
 jobs:
   claude-response:
     runs-on: ubuntu-latest
-    if: |
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude'))
     permissions:
       contents: write
       issues: write
@@ -23,7 +20,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Run Claude Code Action
-        uses: anthropics/claude-code-action@v1
+        uses: anthropics/claude-code-action@beta
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
