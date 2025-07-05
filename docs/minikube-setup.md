@@ -45,7 +45,7 @@ direnv allow
 
 ```bash
 # Secret マニフェストを生成
-./postgres/create-secret.sh
+./scripts/create-secret.sh
 ```
 
 ### リソースのデプロイ
@@ -118,6 +118,7 @@ StatefulSet の Pod は Headless Service を通じて DNS 名でアクセスで�
 ```
 
 PostgreSQL の場合：
+
 - `postgres-0.postgres-headless.default.svc.cluster.local`
 
 #### テスト用クライアント Pod の作成
