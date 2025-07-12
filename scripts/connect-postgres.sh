@@ -41,6 +41,7 @@ fi
 echo -e "\n${YELLOW}ポートフォワードを開始します...${NC}"
 kubectl port-forward postgres-0 15432:5432 &
 PF_PID=$!
+trap 'kill $PF_PID' EXIT
 sleep 3
 
 # ポートフォワードが成功したか確認
