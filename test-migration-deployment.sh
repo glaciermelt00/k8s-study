@@ -1,4 +1,8 @@
 #!/bin/bash
+set -euo pipefail
+
+# エラーハンドリング
+trap 'echo -e "${RED}エラーが発生しました。終了します。${NC}" >&2' ERR
 
 # 色付きの出力用
 RED='\033[0;31m'
@@ -28,8 +32,8 @@ echo -e "${GREEN}✓ postgres-secret が存在します${NC}"
 
 # 3. PostgreSQL StatefulSetが動作しているか確認
 echo -e "\n${YELLOW}3. PostgreSQL StatefulSetの確認${NC}"
-PG_STATUS=$(kubectl get statefulset postgres -o jsonpath='{.status.readyReplicas}' 2>/dev/null)
-if [ "$PG_STATUS" != "1" ]; then
+PG_STATUS=$(kubectl get statefulset postgres -o jsonpath='{.status.readyReplicas}' 2>/dev/null || echo "0")
+if [ "${PG_STATUS}" != "1" ]; then
     echo -e "${RED}エラー: PostgreSQL StatefulSetが準備できていません${NC}"
     echo "先に PostgreSQL をデプロイしてください"
     exit 1
@@ -38,8 +42,7 @@ echo -e "${GREEN}✓ PostgreSQL StatefulSetが動作しています${NC}"
 
 # 4. マイグレーションAPIのビルド
 echo -e "\n${YELLOW}4. マイグレーションAPIのビルド${NC}"
-docker build -t migration-api:latest -f apps/migration/Dockerfile apps/migration/
-if [ $? -ne 0 ]; then
+if ! docker build -t migration-api:latest -f apps/migration/Dockerfile apps/migration/; then
     echo -e "${RED}エラー: Dockerイメージのビルドに失敗しました${NC}"
     exit 1
 fi
@@ -51,8 +54,7 @@ kubectl delete job migration-job --ignore-not-found=true
 
 # 6. マイグレーションジョブのデプロイ
 echo -e "\n${YELLOW}6. マイグレーションジョブのデプロイ${NC}"
-kubectl apply -f deployments/migration/job.yaml
-if [ $? -ne 0 ]; then
+if ! kubectl apply -f deployments/migration/job.yaml; then
     echo -e "${RED}エラー: ジョブのデプロイに失敗しました${NC}"
     exit 1
 fi
@@ -64,22 +66,29 @@ echo "ジョブの完了を待っています..."
 
 # 最大60秒待つ
 for i in {1..60}; do
-    STATUS=$(kubectl get job migration-job -o jsonpath='{.status.conditions[?(@.type=="Complete")].status}' 2>/dev/null)
-    FAILED=$(kubectl get job migration-job -o jsonpath='{.status.conditions[?(@.type=="Failed")].status}' 2>/dev/null)
+    STATUS=$(kubectl get job migration-job -o jsonpath='{.status.conditions[?(@.type=="Complete")].status}' 2>/dev/null || echo "")
+    FAILED=$(kubectl get job migration-job -o jsonpath='{.status.conditions[?(@.type=="Failed")].status}' 2>/dev/null || echo "")
     
-    if [ "$STATUS" = "True" ]; then
-        echo -e "${GREEN}✓ ジョブが正常に完了しました${NC}"
+    if [ "${STATUS}" = "True" ]; then
+        echo -e "\n${GREEN}✓ ジョブが正常に完了しました${NC}"
         break
-    elif [ "$FAILED" = "True" ]; then
-        echo -e "${RED}✗ ジョブが失敗しました${NC}"
+    elif [ "${FAILED}" = "True" ]; then
+        echo -e "\n${RED}✗ ジョブが失敗しました${NC}"
         echo -e "\n${YELLOW}ログ:${NC}"
-        kubectl logs job/migration-job
+        kubectl logs job/migration-job || echo "ログの取得に失敗しました"
         exit 1
     fi
     
     echo -n "."
     sleep 1
 done
+
+# タイムアウトチェック
+if [ $i -eq 60 ]; then
+    echo -e "\n${RED}タイムアウト: ジョブが60秒以内に完了しませんでした${NC}"
+    kubectl describe job migration-job
+    exit 1
+fi
 
 # 8. ジョブのログを表示
 echo -e "\n${YELLOW}8. ジョブのログ${NC}"
