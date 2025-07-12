@@ -37,22 +37,40 @@ jobs:
               issue_number: context.issue.number
             });
 
-            // Claude Botによる過去のコメントを最小化
+            // デバッグ: コメント情報を出力
+            console.log(`コメント総数: ${comments.data.length}`);
+
+            // Claudeアプリによる過去のコメントを最小化
+            let minimizedCount = 0;
             for (const comment of comments.data) {
-              if (comment.user.login === 'github-actions[bot]' && 
-                  comment.body.includes('Claude Code Review') &&
+              console.log(`コメント作者: ${comment.user.login}, アプリ: ${comment.performed_via_github_app?.slug || 'なし'}`);
+              
+              // Claudeアプリによるコメントを対象にする（アプリ名で判定）
+              if (comment.performed_via_github_app && 
+                  comment.performed_via_github_app.slug && 
+                  comment.performed_via_github_app.slug.includes('claude') &&
                   !comment.body.includes('<details>')) {
+                
+                console.log(`最小化対象: コメントID ${comment.id}`);
+                
                 // 既存のコメントを<details>タグで囲む
                 const minimizedBody = `<details>\n<summary>🤖 過去のレビュー - ${new Date(comment.created_at).toLocaleString('ja-JP')}</summary>\n\n${comment.body}\n</details>`;
                 
-                await github.rest.issues.updateComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  comment_id: comment.id,
-                  body: minimizedBody
-                });
+                try {
+                  await github.rest.issues.updateComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    comment_id: comment.id,
+                    body: minimizedBody
+                  });
+                  minimizedCount++;
+                } catch (error) {
+                  console.error(`コメント ${comment.id} の更新に失敗:`, error.message);
+                }
               }
             }
+
+            console.log(`${minimizedCount}件のコメントを最小化しました`);
 
       - name: Checkout repository
         uses: actions/checkout@v4
