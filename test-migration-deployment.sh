@@ -87,6 +87,6 @@ kubectl logs job/migration-job
 
 # 9. データベースにテーブルが作成されたか確認
 echo -e "\n${YELLOW}9. データベースの確認${NC}"
-kubectl exec -it postgres-0 -- psql -U postgres -d postgres -c "\dt"
+kubectl exec -i postgres-0 -- psql -U postgres -d postgres -c "\dt"
 
 echo -e "\n${GREEN}=== テスト完了 ===${NC}"
