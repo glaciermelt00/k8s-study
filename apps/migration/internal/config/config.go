@@ -19,9 +19,13 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("DB_PASSWORD environment variable is required")
 	}
 	dbName := getEnv("DB_NAME", "postgres")
+	
+	// SSLモードを環境変数から取得（デフォルトは require）
+	// Kubernetes内部通信の場合は DB_SSLMODE=disable を設定可能
+	sslMode := getEnv("DB_SSLMODE", "require")
 
-	databaseURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
-		dbUser, dbPassword, dbHost, dbPort, dbName)
+	databaseURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
+		dbUser, dbPassword, dbHost, dbPort, dbName, sslMode)
 
 	return &Config{
 		DatabaseURL: databaseURL,

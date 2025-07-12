@@ -30,5 +30,7 @@ spec:
                 secretKeyRef:
                   name: postgres-secret
                   key: POSTGRES_DB
+            - name: DB_SSLMODE
+              value: "disable"  # Kubernetes内部通信のため
       restartPolicy: Never
   backoffLimit: 3
