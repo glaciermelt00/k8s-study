@@ -158,6 +158,12 @@ func sendToSlack(message *SlackMessage) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		body, readErr := io.ReadAll(resp.Body)
+		if readErr != nil {
+			log.Printf("Failed to read response body: %v", readErr)
+		} else {
+			log.Printf("Slack response body: %s", string(body))
+		}
 		return fmt.Errorf("Slack returned status code: %d", resp.StatusCode)
 	}
 
