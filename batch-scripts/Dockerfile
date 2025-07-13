@@ -16,7 +16,7 @@ COPY send-slack-metrics.go .
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o send-slack-metrics .
 
 # 実行用の軽量イメージ
-FROM alpine:latest
+FROM alpine:3.18
 
 RUN apk --no-cache add ca-certificates
 
