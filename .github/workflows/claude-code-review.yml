@@ -3,7 +3,7 @@ name: Claude Code Review
 on:
   pull_request:
     types: [opened, synchronize]
-    # Optional: Only run on specific file changes
+    # オプション: 特定のファイル変更時のみ実行
     # paths:
     #   - "src/**/*.ts"
     #   - "src/**/*.tsx"
@@ -12,64 +12,151 @@ on:
 
 jobs:
   claude-review:
-    # Optional: Filter by PR author
+    # オプション: PR作成者でフィルタリング
     # if: |
     #   github.event.pull_request.user.login == 'external-contributor' ||
     #   github.event.pull_request.user.login == 'new-developer' ||
     #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
-    
+
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: read
-      issues: read
+      pull-requests: write # コメントの編集のためにwriteに変更
+      issues: write # コメントの編集のためにwriteに変更
       id-token: write
-    
+
     steps:
+      # 過去のClaudeレビューコメントを最小化
+      - name: Minimize past Claude comments
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+
+            // デバッグ: コメント情報を出力
+            console.log(`コメント総数: ${comments.data.length}`);
+
+            // Claudeアプリによる過去のコメントを最小化
+            let minimizedCount = 0;
+            for (const comment of comments.data) {
+              console.log(`コメント作者: ${comment.user.login}, アプリ: ${comment.performed_via_github_app?.slug || 'なし'}`);
+              
+              // Claudeアプリによるコメントを対象にする（アプリ名で判定）
+              if (comment.performed_via_github_app && 
+                  comment.performed_via_github_app.slug && 
+                  comment.performed_via_github_app.slug.includes('claude') &&
+                  !comment.body.includes('<details>')) {
+                
+                console.log(`最小化対象: コメントID ${comment.id}`);
+                
+                // 既存のコメントを<details>タグで囲む
+                const minimizedBody = `<details>\n<summary>🤖 過去のレビュー - ${new Date(comment.created_at).toLocaleString('ja-JP')}</summary>\n\n${comment.body}\n</details>`;
+                
+                try {
+                  await github.rest.issues.updateComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    comment_id: comment.id,
+                    body: minimizedBody
+                  });
+                  minimizedCount++;
+                } catch (error) {
+                  console.error(`コメント ${comment.id} の更新に失敗:`, error.message);
+                }
+              }
+            }
+
+            console.log(`${minimizedCount}件のコメントを最小化しました`);
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 0 # PR全体の差分を取得するため
 
       - name: Run Claude Code Review
         id: claude-review
         uses: anthropics/claude-code-action@beta
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          
-          # Optional: Specify model (defaults to Claude Sonnet 4, uncomment for Claude Opus 4)
+
+          # オプション: モデルを指定（デフォルト: Claude Sonnet 4、Claude Opus 4を使用する場合はコメントを外す）
           # model: "claude-opus-4-20250514"
-          
-          # Direct prompt for automated review (no @claude mention needed)
+
+          # 自動レビュー用の直接プロンプト（@claudeメンションは不要）
           direct_prompt: |
-            Please review this pull request and provide feedback on:
-            - Code quality and best practices
-            - Potential bugs or issues
-            - Performance considerations
-            - Security concerns
-            - Test coverage
-            
-            Be constructive and helpful in your feedback.
-          
-          # Optional: Customize review based on file types
+            このプルリクエストを分析して、以下の2つのタスクを実行してください：
+
+            ## タスク1: PR説明の生成
+            最初に、PRの差分を分析して説明を生成してください。以下の形式で出力：
+
+            <!-- PR_DESCRIPTION_START -->
+            ## 📋 変更内容の概要
+
+            ### 🎯 このPRの目的
+            （PRの目的を簡潔に記載）
+
+            ### ✨ 主な変更点
+            - 変更点1
+            - 変更点2
+            - ...
+
+            ### 🔧 技術的な詳細
+            （実装の詳細、アプローチの説明など）
+
+            ### 📊 アーキテクチャ/フロー図（必要に応じて）
+            ```mermaid
+            graph TD
+                A[開始] --> B[処理]
+                B --> C[終了]
+            ```
+
+            ### 📝 その他の注意事項
+            （破壊的変更、移行手順など、あれば記載）
+            <!-- PR_DESCRIPTION_END -->
+
+            ## タスク2: コードレビュー
+            次に、以下の観点でコードをレビューしてください：
+            - コードの品質とベストプラクティス
+            - 潜在的なバグや問題
+            - パフォーマンスの考慮事項
+            - セキュリティの懸念事項
+            - テストカバレッジ
+
+            レビュー結果は必ず以下のフォーマットで出力：
+
+            <details>
+            <summary>🤖 Claude Code Review</summary>
+
+            ### レビュー結果
+
+            [ここにレビュー内容を記載]
+
+            ---
+            <sub>このレビューは最新のコミットに基づいています。</sub>
+            </details>
+
+          # オプション: ファイルタイプに基づいてレビューをカスタマイズ
           # direct_prompt: |
-          #   Review this PR focusing on:
-          #   - For TypeScript files: Type safety and proper interface usage
-          #   - For API endpoints: Security, input validation, and error handling
-          #   - For React components: Performance, accessibility, and best practices
-          #   - For tests: Coverage, edge cases, and test quality
-          
-          # Optional: Different prompts for different authors
+          #   以下の観点でPRをレビューしてください：
+          #   - TypeScriptファイル: 型安全性と適切なインターフェースの使用
+          #   - APIエンドポイント: セキュリティ、入力検証、エラーハンドリング
+          #   - Reactコンポーネント: パフォーマンス、アクセシビリティ、ベストプラクティス
+          #   - テスト: カバレッジ、エッジケース、テストの品質
+
+          # オプション: 作成者によって異なるプロンプト
           # direct_prompt: |
-          #   ${{ github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR' && 
-          #   'Welcome! Please review this PR from a first-time contributor. Be encouraging and provide detailed explanations for any suggestions.' ||
-          #   'Please provide a thorough code review focusing on our coding standards and best practices.' }}
-          
-          # Optional: Add specific tools for running tests or linting
+          #   ${{ github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR' &&
+          #   'ようこそ！初めてのコントリビューターからのPRです。励ましの言葉と共に、提案について詳しい説明を提供してください。' ||
+          #   'コーディング規約とベストプラクティスに焦点を当てた詳細なコードレビューを提供してください。' }}
+
+          # オプション: テストやリンティングを実行するための特定のツールを追加
           # allowed_tools: "Bash(npm run test),Bash(npm run lint),Bash(npm run typecheck)"
-          
-          # Optional: Skip review for certain conditions
+
+          # オプション: 特定の条件でレビューをスキップ
           # if: |
           #   !contains(github.event.pull_request.title, '[skip-review]') &&
           #   !contains(github.event.pull_request.title, '[WIP]')
-

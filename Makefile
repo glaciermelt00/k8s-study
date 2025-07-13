@@ -1,4 +1,4 @@
-.PHONY: help setup start stop clean deploy-postgres deploy-api deploy-migration port-forward logs
+.PHONY: help setup start stop clean deploy-postgres deploy-api run-migration port-forward dashboard logs
 
 # デフォルトターゲット
 help:
@@ -9,8 +9,9 @@ help:
 	@echo "  make clean              - クリーンアップ（リソース削除）"
 	@echo "  make deploy-postgres    - PostgreSQLのデプロイ"
 	@echo "  make deploy-api         - APIサーバーのデプロイ"
-	@echo "  make deploy-migration   - マイグレーション実行"
+	@echo "  make run-migration      - マイグレーション実行"
 	@echo "  make port-forward       - PostgreSQLポートフォワード"
+	@echo "  make dashboard          - Kubernetesダッシュボード起動"
 	@echo "  make logs               - ログ表示"
 
 # Minikube管理
@@ -46,15 +47,26 @@ deploy-api:
 	@echo "APIサーバーをデプロイします..."
 	# kubectl apply -f deployments/api/
 
-# マイグレーション実行（実装後に使用）
-deploy-migration:
-	@echo "マイグレーションを実行します..."
-	# kubectl apply -f deployments/migration/
+# Migration API のビルドとデプロイ
+build-migration:
+	cd apps/migration && go mod download
+	docker build -t migration-api:latest ./apps/migration
+	minikube image load migration-api:latest
+
+run-migration: build-migration
+	kubectl delete job migration-job --ignore-not-found=true
+	kubectl apply -f deployments/migration/job.yaml
+
 
 # ポートフォワード
 port-forward:
 	@echo "PostgreSQL (15432:5432) のポートフォワードを開始します..."
 	kubectl port-forward postgres-0 15432:5432
+
+# ダッシュボード
+dashboard:
+	@echo "Kubernetes ダッシュボードを起動します..."
+	minikube dashboard
 
 # ログ表示
 logs:
