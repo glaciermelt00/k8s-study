@@ -1,3 +1,6 @@
 export POSTGRES_USER=your_postgres_user
 export POSTGRES_PASSWORD=your_postgres_password
 export POSTGRES_DB=your_database_name
+
+# Slack Webhook URL for CronJob notifications
+export SLACK_WEBHOOK_URL="https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
