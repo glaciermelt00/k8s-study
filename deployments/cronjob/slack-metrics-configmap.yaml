@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: slack-metrics-config
+  namespace: default
+data:
+  metrics-type: "database"
+  report-format: "detailed"  # simple or detailed

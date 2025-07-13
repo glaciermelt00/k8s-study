@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # API キーを引数として受け取る
-API_KEY="${1:-$ANTHROPIC_API_KEY}"
+API_KEY="${1:-$CLAUDE_CODE_OAUTH_TOKEN}"
 
 if [ -z "$API_KEY" ]; then
     echo "使用方法: ./test-api-key.sh <API_KEY>"
-    echo "または環境変数 ANTHROPIC_API_KEY を設定してください"
+    echo "または環境変数 CLAUDE_CODE_OAUTH_TOKEN を設定してください"
     exit 1
 fi
 

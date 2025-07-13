@@ -1,0 +1,53 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: slack-metrics-cronjob
+  namespace: default
+spec:
+  schedule: "0 9 * * *"  # 毎日朝9時に実行
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: slack-metrics
+              image: slack-metrics-batch:latest
+              imagePullPolicy: Never
+              env:
+                - name: SLACK_WEBHOOK_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: slack-secret
+                      key: webhook-url
+                - name: DB_HOST
+                  value: postgres-headless
+                - name: DB_PORT
+                  value: "5432"
+                - name: DB_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secret
+                      key: POSTGRES_USER
+                - name: DB_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secret
+                      key: POSTGRES_PASSWORD
+                - name: DB_NAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secret
+                      key: POSTGRES_DB
+                - name: DB_SSLMODE
+                  value: "disable"
+                - name: METRICS_TYPE
+                  valueFrom:
+                    configMapKeyRef:
+                      name: slack-metrics-config
+                      key: metrics-type
+                - name: REPORT_FORMAT
+                  valueFrom:
+                    configMapKeyRef:
+                      name: slack-metrics-config
+                      key: report-format
+          restartPolicy: OnFailure
