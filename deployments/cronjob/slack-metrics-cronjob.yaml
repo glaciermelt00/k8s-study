@@ -4,9 +4,9 @@ metadata:
   name: slack-metrics-cronjob
   namespace: default
 spec:
-  schedule: "0 9 * * *"  # 毎日朝9時に実行
-  successfulJobsHistoryLimit: 1  # 成功したJobを1つだけ保持
-  failedJobsHistoryLimit: 1      # 失敗したJobを1つだけ保持
+  schedule: "0 9 * * *" # 毎日朝9時に実行
+  successfulJobsHistoryLimit: 1 # 成功したJobを1つだけ保持
+  failedJobsHistoryLimit: 1 # 失敗したJobを1つだけ保持
   jobTemplate:
     spec:
       template:
@@ -52,4 +52,11 @@ spec:
                     configMapKeyRef:
                       name: slack-metrics-config
                       key: report-format
+              resources:
+                requests:
+                  cpu: "100m"
+                  memory: "64Mi"
+                limits:
+                  cpu: "200m"
+                  memory: "128Mi"
           restartPolicy: OnFailure
