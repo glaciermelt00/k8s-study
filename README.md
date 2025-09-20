@@ -145,4 +145,27 @@ make logs
 
 ## ドキュメント
 
+### Kubernetes 入門コース関連
+
+- [Kubernetes 入門コース総括](docs/kubernetes-course-summary.md) - コースで学習した内容のまとめ
+- [アーキテクチャ図](docs/architecture-diagram.md) - システム全体の構成図
+
+### 実装ガイド
+
 - [Minikube で StatefulSet を動かす手順](docs/minikube-setup.md)
+- [Slack Metrics API ガイド](docs/slack-metrics-api-guide.md)
+- [Ingress 設定ガイド](docs/ingress-guide.md)
+- [ClusterIP Service ガイド](docs/clusterip-service-guide.md)
+- [CronJob トラブルシューティング](docs/cronjob-troubleshooting-guide.md)
+- [運用監視ガイド](docs/monitoring-guide.md)
+- [TablePlus 接続ガイド](docs/tableplus-connection-guide.md)
+
+## Kubernetes 入門コース修了
+
+このプロジェクトは Kubernetes 入門コースの学習用リポジトリとして作成され、以下の内容を実践的に学習しました：
+
+- **Service の種類**: Headless、ClusterIP、NodePort、LoadBalancer の違いと使い分け
+- **Ingress と LoadBalancer**: L7/L4 の違いと適切な選択
+- **Kubernetes アーキテクチャ**: Control Plane と Worker Node の構成要素
+
+詳細は [Kubernetes 入門コース総括](docs/kubernetes-course-summary.md) をご覧ください。
