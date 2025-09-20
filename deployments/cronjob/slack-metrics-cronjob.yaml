@@ -5,6 +5,8 @@ metadata:
   namespace: default
 spec:
   schedule: "0 9 * * *"  # 毎日朝9時に実行
+  successfulJobsHistoryLimit: 1  # 成功したJobを1つだけ保持
+  failedJobsHistoryLimit: 1      # 失敗したJobを1つだけ保持
   jobTemplate:
     spec:
       template:
