@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: slack-metrics-api
+  namespace: default
+  labels:
+    app: slack-metrics-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: slack-metrics-api
+  template:
+    metadata:
+      labels:
+        app: slack-metrics-api
+    spec:
+      containers:
+        - name: slack-metrics-api
+          image: slack-metrics-api:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          env:
+            - name: PORT
+              value: "8080"
+            - name: SLACK_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: slack-secret
+                  key: webhook-url
+            - name: DB_HOST
+              value: postgres-headless
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_DB
+            - name: DB_SSLMODE
+              value: "disable"
+            - name: METRICS_TYPE
+              valueFrom:
+                configMapKeyRef:
+                  name: slack-metrics-config
+                  key: metrics-type
+            - name: REPORT_FORMAT
+              valueFrom:
+                configMapKeyRef:
+                  name: slack-metrics-config
+                  key: report-format
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "128Mi"
+            requests:
+              cpu: "250m"
+              memory: "64Mi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
