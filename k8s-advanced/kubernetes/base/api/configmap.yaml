@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: slack-metrics-api-config
+  labels:
+    app: slack-metrics-api
+    component: api
+data:
+  LOG_LEVEL: "info"
+  METRICS_TYPE: "standard"
+  REPORT_FORMAT: "json"

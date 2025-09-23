@@ -27,10 +27,12 @@ go.work.sum
 # env file
 .env
 .envrc
+k8s-advanced/.envrc
 
 # Kubernetes secrets
 secret.yaml
 deployments/postgres/secret.yaml
+k8s-intro/deployments/postgres/secret.yaml
 
 # Claude settings
 .claude/settings.local.json

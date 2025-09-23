@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: slack-metrics-api
+  labels:
+    app: slack-metrics-api
+    component: api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: slack-metrics-api
+      component: api
+  template:
+    metadata:
+      labels:
+        app: slack-metrics-api
+        component: api
+    spec:
+      serviceAccountName: slack-metrics-api
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+        - name: api
+          image: slack-metrics-api:latest
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: PORT
+              value: "8080"
+            - name: DB_HOST
+              value: postgres-headless
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_SSLMODE
+              value: "require"
+          envFrom:
+            - secretRef:
+                name: slack-metrics-api-secret
+            - configMapRef:
+                name: slack-metrics-api-config
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+            capabilities:
+              drop:
+                - ALL

@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+commonLabels:
+  app: slack-metrics-api
+  component: api
+  managed-by: kustomize
+
+resources:
+  - deployment.yaml
+  - service.yaml
+  - serviceaccount.yaml
+  - configmap.yaml
+
+configMapGenerator:
+  - name: slack-metrics-api-config
+    behavior: merge
+    literals:
+      - APP_VERSION=1.0.0

@@ -1,0 +1,37 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: slack-metrics-stg
+
+commonLabels:
+  environment: staging
+
+resources:
+  - ../../base/api
+  - account-config.yaml
+
+patchesStrategicMerge:
+  - deployment-patch.yaml
+
+configMapGenerator:
+  - name: slack-metrics-api-config
+    behavior: merge
+    literals:
+      - LOG_LEVEL=debug
+      - METRICS_TYPE=detailed
+      - ENVIRONMENT=staging
+
+replacements:
+  - source:
+      kind: ConfigMap
+      name: account-config
+      fieldPath: data.aws_account_id
+    targets:
+      - select:
+          kind: ServiceAccount
+          name: slack-metrics-api
+        fieldPaths:
+          - metadata.annotations.[eks.amazonaws.com/role-arn]
+        options:
+          delimiter: ':'
+          index: 4

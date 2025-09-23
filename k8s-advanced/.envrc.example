@@ -1,0 +1,27 @@
+# AWS 認証情報
+export AWS_ACCOUNT_ID=123456789012
+export AWS_REGION=ap-northeast-1
+export AWS_ACCESS_KEY_ID=your-access-key-id
+export AWS_SECRET_ACCESS_KEY=your-secret-access-key
+
+# EKS クラスター情報
+export EKS_CLUSTER_NAME=k8s-advanced-stg
+export EKS_VERSION=1.28
+
+# データベース設定
+export DB_USER=slack_metrics
+export DB_PASSWORD=your-secure-password
+export DB_NAME=slack_metrics_db
+
+# Slack 設定
+export SLACK_WEBHOOK_URL=https://hooks.slack.com/services/YOUR/WEBHOOK/URL
+
+# ECR リポジトリ
+export ECR_REPOSITORY=slack-metrics-api
+
+# ArgoCD 設定
+export ARGOCD_ADMIN_PASSWORD=your-argocd-password
+export GITHUB_TOKEN=your-github-token
+
+# 環境識別
+export ENVIRONMENT=staging
