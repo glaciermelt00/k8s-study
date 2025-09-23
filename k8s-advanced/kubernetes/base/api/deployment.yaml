@@ -64,6 +64,9 @@ spec:
             initialDelaySeconds: 5
             periodSeconds: 10
             timeoutSeconds: 5
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
@@ -72,3 +75,6 @@ spec:
             capabilities:
               drop:
                 - ALL
+      volumes:
+        - name: tmp
+          emptyDir: {}

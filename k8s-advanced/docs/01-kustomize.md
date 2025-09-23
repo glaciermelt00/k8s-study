@@ -266,3 +266,4 @@ HorizontalPodAutoscaler を base に追加し、環境ごとに異なるスケ�
 - [Kustomize 公式ドキュメント](https://kustomize.io/)
 - [Kubernetes SIG-CLI Kustomize](https://github.com/kubernetes-sigs/kustomize)
 - [Kustomize Best Practices](https://kubectl.docs.kubernetes.io/references/kustomize/)
+- [📝 演習問題の解答例](./01-kustomize-practice.md)

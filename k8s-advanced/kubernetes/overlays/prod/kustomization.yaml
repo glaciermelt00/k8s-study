@@ -1,11 +1,11 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-namespace: slack-metrics-stg
+namespace: slack-metrics-prod
 
 labels:
   - pairs:
-      environment: staging
+      environment: production
 
 resources:
   - ../../base/api
@@ -29,9 +29,10 @@ configMapGenerator:
   - name: slack-metrics-api-config
     behavior: merge
     literals:
-      - LOG_LEVEL=debug
-      - METRICS_TYPE=detailed
-      - ENVIRONMENT=staging
+      - LOG_LEVEL=warning
+      - METRICS_TYPE=database
+      - REPORT_FORMAT=detailed
+      - ENVIRONMENT=production
 
 replacements:
   - source:

@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: slack-metrics-api
+spec:
+  replicas: 3
+  template:
+    spec:
+      containers:
+        - name: api
+          image: 123456789012.dkr.ecr.ap-northeast-1.amazonaws.com/slack-metrics-api:v1.0.0
+          env:
+            - name: DB_HOST
+              value: postgres-prod.xyz789.ap-northeast-1.rds.amazonaws.com
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: slack_metrics_prod
+          resources:
+            requests:
+              cpu: 500m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
